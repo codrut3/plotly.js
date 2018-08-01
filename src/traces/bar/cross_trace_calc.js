@@ -247,7 +247,7 @@ function setGroupPositionsInStackOrRelativeMode(gd, pa, sa, calcTraces) {
 function setOffsetAndWidth(gd, pa, sieve) {
     var fullLayout = gd._fullLayout,
         bargap = fullLayout.bargap,
-        bargroupgap = fullLayout.bargroupgap,
+        bargroupgap = fullLayout.bargroupgap || 0,
         minDiff = sieve.minDiff,
         calcTraces = sieve.traces,
         i, calcTrace, calcTrace0,
@@ -290,7 +290,7 @@ function setOffsetAndWidth(gd, pa, sieve) {
 function setOffsetAndWidthInGroupMode(gd, pa, sieve) {
     var fullLayout = gd._fullLayout,
         bargap = fullLayout.bargap,
-        bargroupgap = fullLayout.bargroupgap,
+        bargroupgap = fullLayout.bargroupgap || 0,
         positions = sieve.positions,
         distinctPositions = sieve.distinctPositions,
         minDiff = sieve.minDiff,

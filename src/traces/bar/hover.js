@@ -24,6 +24,9 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
 
     var posVal, sizeVal, posLetter, sizeLetter, dx, dy, pRangeCalc;
 
+    // TODO should NOT be in x/y space for barpolar!
+    // This should be in r/theta space, but must consider offset, base
+
     function thisBarMinPos(di) { return di[posLetter] - di.w / 2; }
     function thisBarMaxPos(di) { return di[posLetter] + di.w / 2; }
 
@@ -73,15 +76,14 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
             maxHoverDistance + (di[sizeLetter] - sizeVal) / (di[sizeLetter] - di.b) - 1);
     }
 
-    if(trace.orientation === 'h') {
+    if(trace.orientation === 'h' || trace.orientation === 'radial') {
         posVal = yval;
         sizeVal = xval;
         posLetter = 'y';
         sizeLetter = 'x';
         dx = sizeFn;
         dy = positionFn;
-    }
-    else {
+    } else {
         posVal = xval;
         sizeVal = yval;
         posLetter = 'x';

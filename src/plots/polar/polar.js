@@ -129,6 +129,7 @@ proto.updateLayers = function(fullLayout, polarLayout) {
             switch(d) {
                 case 'frontplot':
                     sel.append('g').classed('scatterlayer', true);
+                    sel.append('g').classed('barlayer', true);
                     break;
                 case 'backplot':
                     sel.append('g').classed('maplayer', true);
