@@ -69,27 +69,12 @@ module.exports = function plot(gd, subplot, cdbar) {
             var s0 = di.b;
             var s1 = s0 + di.s;
 
-            console.log(di.p, poffset, di.w, di.b, di.s)
-
             var shouldRemove = false;
 
-            var ra2xy = function(r, a) {
-                if(!isNumeric(r) || !isNumeric(a)) {
-                    shouldRemove = true;
-                    return;
-                }
-
-                var rg = radialAxis.c2g(r);
-                var thetag = angularAxis.c2g(a);
-                var xc = rg * Math.cos(thetag);
-                var yc = rg * Math.sin(thetag);
-                return [xa.c2p(xc), ya.c2p(yc)];
-            };
-
-            var corners = [
-                ra2xy(s0, p0), ra2xy(s0, p1),
-                ra2xy(s1, p1), ra2xy(s1, p0)
-            ];
+            var rp0 = radialAxis.c2p(s0);
+            var rp1 = radialAxis.c2p(s1);
+            var thetag0 = angularAxis.c2g(p0);
+            var thetag1 = angularAxis.c2g(p1);
 
             // TODO check for overlapping corners too
             if(shouldRemove) {
@@ -98,18 +83,62 @@ module.exports = function plot(gd, subplot, cdbar) {
             }
 
             // for selections
-            di.ct = ra2xy(s1, (p0 + p1) / 2);
+            // di.ct = ra2xy(s1, (p0 + p1) / 2);
 
-            // for hover
-            di.x = xa.p2c(di.ct[0]);
-            di.y = ya.p2c(di.ct[1]);
+            // // for hover
+            // di.x = xa.p2c(di.ct[0]);
+            // di.y = ya.p2c(di.ct[1]);
 
             // TODO round up bar borders?
+            // if so, factor out that logic from Bar.plot
 
-            // TODO should an arc
+            // TODO should be a polygon when polar.vangles is defined!
             Lib.ensureSingle(bar, 'path')
                 .style('vector-effect', 'non-scaling-stroke')
-                .attr('d', 'M' + corners.join('L') + 'Z');
+                .attr('d', pathAnnulus(rp0, rp1, thetag0, thetag1, subplot.cxx, subplot.cyy));
         });
     });
 };
+
+// TODO recycle this routine with the ones used
+// for pie traces and polar subplots
+function pathAnnulus(r0, r1, a0, a1, cx, cy) {
+    cx = cx || 0;
+    cy = cy || 0;
+
+    var largeArc = Math.abs(a1 - a0) <= Math.PI ? 0 : 1;
+
+    function pt(r, s) {
+        return [r * Math.cos(s) + cx, cy - r * Math.sin(s)];
+    }
+
+    function arc(r, s, cw) {
+        return 'A' + [r, r] + ' ' + [0, largeArc, cw] + ' ' + pt(r, s);
+    }
+
+    // sector angle at [s]tart, [m]iddle and [e]nd
+    var ss, sm, se;
+
+    if(Lib.isFullCircle([a0, a1].map(Lib.rad2deg))) {
+        ss = 0;
+        se = 2 * Math.PI;
+        sm = Math.PI;
+        return 'M' + pt(r0, ss) +
+            arc(r0, sm, 0) +
+            arc(r0, se, 0) +
+            'Z' +
+            'M' + pt(r1, ss) +
+            arc(r1, sm, 1) +
+            arc(r1, se, 1) +
+            'Z';
+    } else {
+        ss = a0;
+        se = a1;
+        return 'M' + pt(r0, ss) +
+            'L' + pt(r1, ss) +
+            arc(r1, se, 0) +
+            'L' + pt(r0, se) +
+            arc(r0, ss, 1) +
+            'Z';
+    }
+}
