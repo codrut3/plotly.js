@@ -34,7 +34,7 @@ module.exports = {
     width: barAttrs.width,
 
     text: barAttrs.text,
-    hovertext: barAttrs.hovertext,
+    // hovertext: barAttrs.hovertext,
 
     // textposition: {},
     // textfont: {},

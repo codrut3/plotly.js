@@ -36,7 +36,7 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
     coerce('width');
 
     coerce('text');
-    coerce('hovertext');
+    // coerce('hovertext');
 
     // var textPosition = coerce('textposition');
     // var hasBoth = Array.isArray(textPosition) || textPosition === 'auto';
