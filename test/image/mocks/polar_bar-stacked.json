@@ -9,7 +9,7 @@
     "marker": {"line": {"width": 2}}
   }],
   "layout": {
-    "barmode": "stacked",
+    "polar": {"barmode": "stacked"},
     "colorway": ["#8dd3c7", "#bebada"],
     "width": 500,
     "height": 500

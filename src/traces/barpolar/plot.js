@@ -106,7 +106,9 @@ function pathAnnulus(r0, r1, a0, a1, cx, cy) {
     cx = cx || 0;
     cy = cy || 0;
 
-    var largeArc = Math.abs(a1 - a0) <= Math.PI ? 0 : 1;
+    // make a0 < a1, always
+    if(a1 < a0) a1 = [a0, a0 = a1][0];
+    var largeArc = a1 - a0 <= Math.PI ? 0 : 1;
 
     function pt(r, s) {
         return [r * Math.cos(s) + cx, cy - r * Math.sin(s)];
