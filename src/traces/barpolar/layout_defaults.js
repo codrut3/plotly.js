@@ -9,19 +9,19 @@
 'use strict';
 
 var Lib = require('../../lib');
-var layoutAttributes = require('./layout_attributes');
+var attrs = require('./layout_attributes');
 
 module.exports = function(layoutIn, layoutOut) {
+    var subplotIds = layoutOut._subplots.polar;
+    var sp;
+
     function coerce(attr, dflt) {
-        return Lib.coerce(layoutIn, layoutOut, layoutAttributes, attr, dflt);
+        return Lib.coerce(layoutIn[sp] || {}, layoutOut[sp], attrs, attr, dflt);
     }
 
-    // TODO
-    // will conflict with Bar.supplyLayoutDefaults,
-    // - should be coerced in polar? container
-    // - or maybe :hocho: layout attributes altogether and
-    //   move to trace 'group' attribute strategy
-
-    coerce('barmode');
-    coerce('bargap');
+    for(var i = 0; i < subplotIds.length; i++) {
+        sp = subplotIds[i];
+        coerce('barmode');
+        coerce('bargap');
+    }
 };
