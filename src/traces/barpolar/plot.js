@@ -24,31 +24,19 @@ module.exports = function plot(gd, subplot, cdbar) {
     var ya = subplot.yaxis;
     var radialAxis = subplot.radialAxis;
     var angularAxis = subplot.angularAxis;
-
     var barLayer = subplot.layers.frontplot.select('g.barlayer');
 
-    var bartraces = barLayer.selectAll('g.trace.bars')
-        .data(cdbar, function(d) { return d[0].trace.uid; });
-
-    bartraces.enter().append('g')
-        .attr('class', 'trace bars')
-        .append('g')
-        .attr('class', 'points');
-
-    bartraces.exit().remove();
-
-    bartraces.order();
-
-    bartraces.each(function(d) {
-        var cd0 = d[0];
+    Lib.makeTraceGroups(barLayer, cdbar, 'trace bars').each(function(cd) {
+        var cd0 = cd[0];
+        var plotGroup = cd0.node3 = d3.select(this);
         var t = cd0.t;
         var trace = cd0.trace;
-        var sel = cd0.node3 = d3.select(this);
 
         var poffset = t.poffset;
         var poffsetIsArray = Array.isArray(poffset);
 
-        var bars = sel.select('g.points').selectAll('g.point').data(Lib.identity);
+        var pointGroup = Lib.ensureSingle(plotGroup, 'g', 'points');
+        var bars = pointGroup.selectAll('g.point').data(Lib.identity);
 
         bars.enter().append('g')
             .classed('point', true);
