@@ -26,7 +26,7 @@ module.exports = {
     colorbar: require('../scatter/marker_colorbar'),
     style: require('../bar/style').style,
 
-    hoverPoints: require('./hover').hoverPoints,
+    hoverPoints: require('./hover'),
     selectPoints: require('../bar/select'),
 
     meta: {

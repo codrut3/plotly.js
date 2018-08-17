@@ -9,59 +9,93 @@
 'use strict';
 
 var barHover = require('../bar/hover');
-var Axes = require('../../plots/cartesian/axes');
+var makeHoverPointText = require('../scatterpolar/hover').makeHoverPointText;
+var Color = require('../../components/color')
+var Fx = require('../../components/fx');
 var Lib = require('../../lib');
 
-function hoverPoints(pointData, xval, yval, hovermode) {
-    // TODO might need a seperate hoverPoints in r/theta space
-    var barPointData = barHover(pointData, xval, yval, hovermode);
-    if(!barPointData || barPointData[0].index === false) return;
-
-    var newPointData = barPointData[0];
+module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
+    var cd = pointData.cd;
+    var trace = cd[0].trace;
+    var t = cd[0].t;
 
     var subplot = pointData.subplot;
-    var cdi = newPointData.cd[newPointData.index];
-    var trace = newPointData.trace;
-
-    newPointData.xLabelVal = undefined;
-    newPointData.yLabelVal = undefined;
-    newPointData.extraText = makeHoverPointText(cdi, trace, subplot);
-
-    return barPointData;
-}
-
-function makeHoverPointText(cdi, trace, subplot) {
     var radialAxis = subplot.radialAxis;
     var angularAxis = subplot.angularAxis;
-    var hoverinfo = cdi.hi || trace.hoverinfo;
-    var parts = hoverinfo.split('+');
-    var text = [];
+    var xa = subplot.xaxis;
+    var ya = subplot.yaxis;
 
-    radialAxis._hovertitle = 'r';
-    angularAxis._hovertitle = 'θ';
+    // these are in 'g'eometric coordinates
+    var rVal = Math.sqrt(xval * xval + yval * yval);
+    var thetaVal = Math.atan2(yval, xval);
 
-    var rad = angularAxis._c2rad(cdi.theta, trace.thetaunit);
+    // TODO add padding around sector to show labels,
+    // when hovering "close to" them
+    //
+    // TODO handle case with polar.vangles
+    var distFn = function(di) {
+        var sector = [di.p0, di.p1].map(angularAxis.c2g).map(Lib.rad2deg);
 
-    // show theta value in unit of angular axis
-    var theta;
-    if(angularAxis.type === 'linear' && trace.thetaunit !== angularAxis.thetaunit) {
-        theta = angularAxis.thetaunit === 'degrees' ? Lib.rad2deg(rad) : rad;
-    } else {
-        theta = cdi.theta;
-    }
+        return (
+            isAngleInSector(thetaVal, sector) &&
+            rVal >= radialAxis.c2g(di.s0) &&
+            rVal <= radialAxis.c2g(di.s1)
+        ) ? 1 : Infinity;
+    };
 
-    function textPart(ax, val) {
-        text.push(ax._hovertitle + ': ' + Axes.tickText(ax, val, 'hover').text);
-    }
+    Fx.getClosest(cd, distFn, pointData);
 
-    if(parts.indexOf('all') !== -1) parts = ['r', 'theta'];
-    if(parts.indexOf('r') !== -1) textPart(radialAxis, radialAxis.c2r(cdi.r));
-    if(parts.indexOf('theta') !== -1) textPart(angularAxis, theta);
+    // skip the rest (for this trace) if we didn't find a close point
+    if(pointData.index === false) return;
 
-    return text.join('<br>');
-}
+    var index = pointData.index;
+    var cdi = cd[index];
+    var rg = radialAxis.c2g(cdi.s1);
+    // TODO include offset here?
+    var thetag = angularAxis.c2g(cdi.p);
+    var xp = xa.c2p(rg * Math.cos(thetag));
+    var yp = ya.c2p(rg * Math.sin(thetag));
 
-module.exports = {
-    hoverPoints: hoverPoints,
-    makeHoverPointText: makeHoverPointText
+    // TODO use 'extents' like in Bar.hover?
+    pointData.x0 = pointData.x1 = xp;
+    pointData.y0 = pointData.y1 = yp;
+
+    var _cdi = Lib.extendFlat({}, cdi, {r: cdi.s, theta: cdi.p});
+    pointData.extraText = makeHoverPointText(_cdi, trace, subplot);
+    pointData.xLabelVal = undefined;
+    pointData.yLabelVal = undefined;
+
+    // TODO DRY-up with Bar.hover
+    var mc = cdi.mcc || trace.marker.color;
+    var mlc = cdi.mlcc || trace.marker.line.color;
+    var mlw = cdi.mlw || trace.marker.line.width;
+    if(Color.opacity(mc)) pointData.color = mc;
+    else if(Color.opacity(mlc) && mlw) pointData.color = mlc;
+
+    return [pointData];
 };
+
+// TODO move to lib/angles, DRY with polar.js version
+function isAngleInSector(rad, sector) {
+    if(Lib.isFullCircle(sector)) return true;
+
+    var s0, s1;
+
+    if(sector[0] < sector[1]) {
+        s0 = sector[0];
+        s1 = sector[1];
+    } else {
+        s0 = sector[1];
+        s1 = sector[0];
+    }
+
+    s0 = Lib.wrap360(s0);
+    s1 = Lib.wrap360(s1);
+    if(s0 > s1) s1 += 360;
+
+    var deg = Lib.wrap360(Lib.rad2deg(rad));
+    var nextTurnDeg = deg + 360;
+
+    return (deg >= s0 && deg <= s1) ||
+        (nextTurnDeg >= s0 && nextTurnDeg <= s1);
+}

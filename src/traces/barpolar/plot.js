@@ -52,12 +52,12 @@ module.exports = function plot(gd, subplot, cdbar) {
             // clipped xf/yf (2nd arg true): non-positive
             // log values go off-screen by plotwidth
             // so you see them continue if you drag the plot
-            var p0 = di.p + ((poffsetIsArray) ? poffset[i] : poffset);
-            var p1 = p0 + di.w;
-            var s0 = di.b;
-            var s1 = s0 + di.s;
-
-            var shouldRemove = false;
+            //
+            // this gets reused in ./hover.js
+            var p0 = di.p0 = di.p + ((poffsetIsArray) ? poffset[i] : poffset);
+            var p1 = di.p1 = p0 + di.w;
+            var s0 = di.s0 = di.b;
+            var s1 = di.s1 = s0 + di.s;
 
             var rp0 = radialAxis.c2p(s0);
             var rp1 = radialAxis.c2p(s1);
@@ -65,17 +65,21 @@ module.exports = function plot(gd, subplot, cdbar) {
             var thetag1 = angularAxis.c2g(p1);
 
             // TODO check for overlapping corners too
+            var shouldRemove = false;
             if(shouldRemove) {
                 bar.remove();
                 return;
             }
 
             // for selections
-            // di.ct = ra2xy(s1, (p0 + p1) / 2);
-
-            // // for hover
-            // di.x = xa.p2c(di.ct[0]);
-            // di.y = ya.p2c(di.ct[1]);
+            // TODO is this optimal for barpolar?
+            // Will be different when polar.vangles is defined
+            var rg1 = radialAxis.c2g(s1);
+            var thetagMid = (thetag0 + thetag1) / 2;
+            di.ct = [
+                xa.c2p(rg1 * Math.cos(thetagMid)),
+                ya.c2p(rg1 * Math.sin(thetagMid))
+            ];
 
             // TODO round up bar borders?
             // if so, factor out that logic from Bar.plot
