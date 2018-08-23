@@ -350,7 +350,7 @@ function applyAttributes(sieve) {
         fullTrace = calcTrace0.trace;
         t = calcTrace0.t;
 
-        var offset = fullTrace.offset,
+        var offset = fullTrace._offset || fullTrace.offset,
             initialPoffset = t.poffset,
             newPoffset;
 
@@ -377,7 +377,7 @@ function applyAttributes(sieve) {
             t.poffset = offset;
         }
 
-        var width = fullTrace.width,
+        var width = fullTrace._width || fullTrace.width,
             initialBarwidth = t.barwidth;
 
         if(isArrayOrTypedArray(width)) {

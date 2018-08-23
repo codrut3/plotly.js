@@ -35,6 +35,23 @@ function calc(gd, trace) {
         cd[i] = {p: pArray[i], s: sArray[i]};
     }
 
+    // convert width and offset in 'c' coordinate,
+    // set 'c' value(s) in trace._width and trace._offset,
+    // to make Bar.crossTraceCalc "just work"
+    function d2c(attr) {
+        var val = trace[attr];
+        if(val !== undefined) {
+            trace['_' + attr] = Array.isArray(val) ?
+                angularAxis.makeCalcdata(trace, attr) :
+                angularAxis.d2c(val, trace.thetaunit);
+        }
+    }
+
+    if(angularAxis.type === 'linear') {
+        d2c('width');
+        d2c('offset');
+    }
+
     if(hasColorscale(trace, 'marker')) {
         colorscaleCalc(trace, trace.marker.color, 'marker', 'c');
     }
