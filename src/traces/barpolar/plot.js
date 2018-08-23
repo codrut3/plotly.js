@@ -64,9 +64,10 @@ module.exports = function plot(gd, subplot, cdbar) {
             var thetag0 = angularAxis.c2g(p0);
             var thetag1 = angularAxis.c2g(p1);
 
-            // TODO check for overlapping corners too
-            var shouldRemove = false;
-            if(shouldRemove) {
+            if(!isNumeric(rp0) || !isNumeric(rp1) ||
+                !isNumeric(thetag0) || !isNumeric(thetag1) ||
+                rp0 === rp1 || thetag0 === thetag1
+            ) {
                 bar.remove();
                 return;
             }
