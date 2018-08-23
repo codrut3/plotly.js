@@ -21,13 +21,13 @@ module.exports = {
     dtheta: scatterPolarAttrs.dtheta,
     thetaunit: scatterPolarAttrs.thetaunit,
 
-    orientation: {
-        valType: 'enumerated',
-        role: 'info',
-        values: ['radial', 'angular'],
-        editType: 'calc+clearAxisTypes',
-        description: 'Sets the orientation of the bars.'
-    },
+    // orientation: {
+    //     valType: 'enumerated',
+    //     role: 'info',
+    //     values: ['radial', 'angular'],
+    //     editType: 'calc+clearAxisTypes',
+    //     description: 'Sets the orientation of the bars.'
+    // },
 
     base: barAttrs.base,
     offset: barAttrs.offset,

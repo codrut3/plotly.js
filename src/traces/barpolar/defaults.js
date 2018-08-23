@@ -25,12 +25,13 @@ module.exports = function supplyDefaults(traceIn, traceOut, defaultColor, layout
         return;
     }
 
+    // coerce('orientation', (traceOut.theta && !traceOut.r) ? 'angular' : 'radial');
+
     // TODO
     // thetaunit should affect 'offset' / 'width' (for radial orientations) and
     // 'base' for angular orientations
     coerce('thetaunit');
 
-    coerce('orientation', (traceOut.theta && !traceOut.r) ? 'angular' : 'radial');
     coerce('base');
     coerce('offset');
     coerce('width');

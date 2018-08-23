@@ -27,17 +27,9 @@ function calc(gd, trace) {
     var cd = new Array(len);
 
     // 'size' axis variables
-    var sArray;
+    var sArray = rArray;
     // 'pos' axis variables
-    var pArray;
-
-    if(trace.orientation === 'radial') {
-        sArray = rArray;
-        pArray = thetaArray;
-    } else {
-        sArray = thetaArray;
-        pArray = rArray;
-    }
+    var pArray = thetaArray;
 
     for(var i = 0; i < len; i++) {
         cd[i] = {p: pArray[i], s: sArray[i]};
@@ -58,19 +50,14 @@ function calc(gd, trace) {
 
 function crossTraceCalc(gd, polarLayout) {
     var calcdata = gd.calcdata;
-    var cdRadial = [];
-    var cdAngular = [];
+    var barPolarCd = [];
 
     for(var i = 0; i < calcdata.length; i++) {
         var cdi = calcdata[i];
         var trace = cdi[0].trace;
 
         if(trace.visible === true && traceIs(trace, 'bar')) {
-            if(trace.orientation === 'radial') {
-                cdRadial.push(cdi);
-            } else {
-                cdAngular.push(cdi);
-            }
+            barPolarCd.push(cdi);
         }
     }
 
@@ -86,8 +73,7 @@ function crossTraceCalc(gd, polarLayout) {
     // TODO clean up setGroupPositions API instead
     var mockGd = {_fullLayout: polarLayout};
 
-    setGroupPositions(mockGd, aAxis, rAxis, cdRadial);
-    setGroupPositions(mockGd, rAxis, aAxis, cdAngular);
+    setGroupPositions(mockGd, aAxis, rAxis, barPolarCd);
 }
 
 module.exports = {

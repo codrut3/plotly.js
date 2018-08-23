@@ -32,10 +32,10 @@ module.exports = {
     meta: {
         hrName: 'bar_polar',
         description: [
-            'The data visualized by the radial span of the bars is set in `r`',
-            'if `orientation` is set th *radial* (the default)',
-            'and the labels are set in `theta`.',
-            'By setting `orientation` to *angular*, the roles are interchanged.'
+            'The data visualized by the radial span of the bars is set in `r`'
+            // 'if `orientation` is set th *radial* (the default)',
+            // 'and the labels are set in `theta`.',
+            // 'By setting `orientation` to *angular*, the roles are interchanged.'
         ].join(' ')
     }
 };
