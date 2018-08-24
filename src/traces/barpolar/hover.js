@@ -13,6 +13,7 @@ var makeHoverPointText = require('../scatterpolar/hover').makeHoverPointText;
 var Color = require('../../components/color')
 var Fx = require('../../components/fx');
 var Lib = require('../../lib');
+var isPtInsidePolygon = require('../../plots/polar/helpers').isPtInsidePolygon;
 
 module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var cd = pointData.cd;
@@ -24,6 +25,7 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var angularAxis = subplot.angularAxis;
     var xa = subplot.xaxis;
     var ya = subplot.yaxis;
+    var inboxFn = subplot.vangles ? isPtInsidePolygon : Lib.isPtInsideSector;
 
     // these are in 'g'eometric coordinates
     var rVal = Math.sqrt(xval * xval + yval * yval);
@@ -31,16 +33,12 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
 
     // TODO add padding around sector to show labels,
     // when hovering "close to" them
-    //
-    // TODO handle case with polar.vangles
     var distFn = function(di) {
-        var sector = [di.p0, di.p1].map(angularAxis.c2g).map(Lib.rad2deg);
-
-        return (
-            isAngleInSector(thetaVal, sector) &&
-            rVal >= radialAxis.c2g(di.s0) &&
-            rVal <= radialAxis.c2g(di.s1)
-        ) ? 1 : Infinity;
+        var rBnds = [di.s0, di.s1];
+        var thetaBnds = [di.p0, di.p1].map(angularAxis.c2g).map(Lib.rad2deg);
+        return inboxFn(rVal, thetaVal, rBnds, thetaBnds, subplot.vangles) ?
+            1 :
+            Infinity;
     };
 
     Fx.getClosest(cd, distFn, pointData);
@@ -74,28 +72,3 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
 
     return [pointData];
 };
-
-// TODO move to lib/angles, DRY with polar.js version
-function isAngleInSector(rad, sector) {
-    if(Lib.isFullCircle(sector)) return true;
-
-    var s0, s1;
-
-    if(sector[0] < sector[1]) {
-        s0 = sector[0];
-        s1 = sector[1];
-    } else {
-        s0 = sector[1];
-        s1 = sector[0];
-    }
-
-    s0 = Lib.wrap360(s0);
-    s1 = Lib.wrap360(s1);
-    if(s0 > s1) s1 += 360;
-
-    var deg = Lib.wrap360(Lib.rad2deg(rad));
-    var nextTurnDeg = deg + 360;
-
-    return (deg >= s0 && deg <= s1) ||
-        (nextTurnDeg >= s0 && nextTurnDeg <= s1);
-}

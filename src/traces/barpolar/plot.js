@@ -17,6 +17,7 @@ var svgTextUtils = require('../../lib/svg_text_utils');
 
 var Color = require('../../components/color');
 var Drawing = require('../../components/drawing');
+var helpers = require('../../plots/polar/helpers');
 
 module.exports = function plot(gd, subplot, cdbar) {
     var fullLayout = gd._fullLayout;
@@ -24,6 +25,7 @@ module.exports = function plot(gd, subplot, cdbar) {
     var ya = subplot.yaxis;
     var radialAxis = subplot.radialAxis;
     var angularAxis = subplot.angularAxis;
+    var pathFn = makePathFn(subplot);
     var barLayer = subplot.layers.frontplot.select('g.barlayer');
 
     Lib.makeTraceGroups(barLayer, cdbar, 'trace bars').each(function(cd) {
@@ -72,9 +74,7 @@ module.exports = function plot(gd, subplot, cdbar) {
                 return;
             }
 
-            // for selections
-            // TODO is this optimal for barpolar?
-            // Will be different when polar.vangles is defined
+            // TODO is this what we want for barpolar?
             var rg1 = radialAxis.c2g(s1);
             var thetagMid = (thetag0 + thetag1) / 2;
             di.ct = [
@@ -85,55 +85,43 @@ module.exports = function plot(gd, subplot, cdbar) {
             // TODO round up bar borders?
             // if so, factor out that logic from Bar.plot
 
-            // TODO should be a polygon when polar.vangles is defined!
             Lib.ensureSingle(bar, 'path')
                 .style('vector-effect', 'non-scaling-stroke')
-                .attr('d', pathAnnulus(rp0, rp1, thetag0, thetag1, subplot.cxx, subplot.cyy));
+                .attr('d', pathFn(rp0, rp1, thetag0, thetag1));
         });
+
+        // clip plotGroup, when trace layer isn't clipped
+        Drawing.setClipUrl(plotGroup, subplot._hasClipOnAxisFalse ? subplot.clipIds.forTraces : null);
     });
 };
 
-// TODO recycle this routine with the ones used
-// for pie traces and polar subplots
-function pathAnnulus(r0, r1, a0, a1, cx, cy) {
-    cx = cx || 0;
-    cy = cy || 0;
+function makePathFn(subplot) {
+    var cxx = subplot.cxx;
+    var cyy = subplot.cyy;
 
-    // make a0 < a1, always
-    if(a1 < a0) a1 = [a0, a0 = a1][0];
-    var largeArc = a1 - a0 <= Math.PI ? 0 : 1;
+    if(subplot.vangles) {
+        return function(r0, r1, _a0, _a1) {
+            var a0, a1;
 
-    function pt(r, s) {
-        return [r * Math.cos(s) + cx, cy - r * Math.sin(s)];
+            if(Lib.angleDelta(_a0, _a1) > 0) {
+                a0 = _a0;
+                a1 = _a1;
+            } else {
+                a0 = _a1;
+                a1 = _a0;
+            }
+
+            var tip = (a0 + a1) / 2;
+            var va0 = helpers.findEnclosingVertexAngles(a0, subplot.vangles)[0];
+            var va1 = helpers.findEnclosingVertexAngles(a1, subplot.vangles)[1];
+            var vaBar = [va0, tip, va1];
+            var clip = [a0, a1].map(Lib.rad2deg)
+
+            return helpers.pathPolygonAnnulus(r0, r1, clip, vaBar, cxx, cyy);
+        };
     }
 
-    function arc(r, s, cw) {
-        return 'A' + [r, r] + ' ' + [0, largeArc, cw] + ' ' + pt(r, s);
-    }
-
-    // sector angle at [s]tart, [m]iddle and [e]nd
-    var ss, sm, se;
-
-    if(Lib.isFullCircle([a0, a1].map(Lib.rad2deg))) {
-        ss = 0;
-        se = 2 * Math.PI;
-        sm = Math.PI;
-        return 'M' + pt(r0, ss) +
-            arc(r0, sm, 0) +
-            arc(r0, se, 0) +
-            'Z' +
-            'M' + pt(r1, ss) +
-            arc(r1, sm, 1) +
-            arc(r1, se, 1) +
-            'Z';
-    } else {
-        ss = a0;
-        se = a1;
-        return 'M' + pt(r0, ss) +
-            'L' + pt(r1, ss) +
-            arc(r1, se, 0) +
-            'L' + pt(r0, se) +
-            arc(r0, ss, 1) +
-            'Z';
-    }
+    return function(r0, r1, a0, a1) {
+        return Lib.pathAnnulus(r0, r1, a0, a1, cxx, cyy);
+    };
 }
