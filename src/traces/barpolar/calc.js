@@ -65,7 +65,7 @@ function calc(gd, trace) {
     return cd;
 }
 
-function crossTraceCalc(gd, polarLayout) {
+function crossTraceCalc(gd, polarLayout, subplotId) {
     var calcdata = gd.calcdata;
     var barPolarCd = [];
 
@@ -73,7 +73,9 @@ function crossTraceCalc(gd, polarLayout) {
         var cdi = calcdata[i];
         var trace = cdi[0].trace;
 
-        if(trace.visible === true && traceIs(trace, 'bar')) {
+        if(trace.visible === true && traceIs(trace, 'bar') &&
+            trace.subplot === subplotId
+        ) {
             barPolarCd.push(cdi);
         }
     }
