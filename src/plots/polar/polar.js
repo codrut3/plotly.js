@@ -90,7 +90,7 @@ proto.plot = function(polarCalcData, fullLayout) {
     _this.updateLayers(fullLayout, polarLayout);
     _this.updateLayout(fullLayout, polarLayout);
     Plots.generalUpdatePerTraceModule(_this.gd, _this, polarCalcData, polarLayout);
-    _this.updateFx(fullLayout, polarLayout);
+    _this.updateFx(fullLayout);
 };
 
 proto.updateLayers = function(fullLayout, polarLayout) {
@@ -600,15 +600,15 @@ proto.updateAngularAxis = function(fullLayout, polarLayout) {
     .call(Color.stroke, angularLayout.linecolor);
 };
 
-proto.updateFx = function(fullLayout, polarLayout) {
+proto.updateFx = function(fullLayout) {
     if(!this.gd._context.staticPlot) {
-        this.updateAngularDrag(fullLayout, polarLayout);
-        this.updateRadialDrag(fullLayout, polarLayout);
-        this.updateMainDrag(fullLayout, polarLayout);
+        this.updateAngularDrag(fullLayout);
+        this.updateRadialDrag(fullLayout);
+        this.updateMainDrag(fullLayout);
     }
 };
 
-proto.updateMainDrag = function(fullLayout, polarLayout) {
+proto.updateMainDrag = function(fullLayout) {
     var _this = this;
     var gd = _this.gd;
     var layers = _this.layers;
@@ -620,7 +620,7 @@ proto.updateMainDrag = function(fullLayout, polarLayout) {
     var cy = _this.cy;
     var cxx = _this.cxx;
     var cyy = _this.cyy;
-    var sector = polarLayout.sector;
+    var sector = _this.sector;
     var vangles = _this.vangles;
     var clampTiny = helpers.clampTiny;
     var findXYatLength = helpers.findXYatLength;
@@ -908,7 +908,7 @@ proto.updateMainDrag = function(fullLayout, polarLayout) {
     dragElement.init(dragOpts);
 };
 
-proto.updateRadialDrag = function(fullLayout, polarLayout) {
+proto.updateRadialDrag = function(fullLayout) {
     var _this = this;
     var gd = _this.gd;
     var layers = _this.layers;
@@ -916,16 +916,16 @@ proto.updateRadialDrag = function(fullLayout, polarLayout) {
     var cx = _this.cx;
     var cy = _this.cy;
     var radialAxis = _this.radialAxis;
-    var radialLayout = polarLayout.radialaxis;
+
+    if(!radialAxis.visible) return;
+
     var angle0 = deg2rad(_this.radialAxisAngle);
     var rl0 = radialAxis._rl[0];
     var rl1 = radialAxis._rl[1];
     var drl = rl1 - rl0;
+
     var bl = constants.radialDragBoxSize;
     var bl2 = bl / 2;
-
-    if(!radialLayout.visible) return;
-
     var radialDrag = dragBox.makeRectDragger(layers, 'radialdrag', 'crosshair', -bl2, -bl2, bl, bl);
     var dragOpts = {element: radialDrag, gd: gd};
     var tx = cx + (radius + bl2) * Math.cos(angle0);
@@ -1039,7 +1039,7 @@ proto.updateRadialDrag = function(fullLayout, polarLayout) {
     dragElement.init(dragOpts);
 };
 
-proto.updateAngularDrag = function(fullLayout, polarLayout) {
+proto.updateAngularDrag = function(fullLayout) {
     var _this = this;
     var gd = _this.gd;
     var layers = _this.layers;
@@ -1049,7 +1049,7 @@ proto.updateAngularDrag = function(fullLayout, polarLayout) {
     var cy = _this.cy;
     var cxx = _this.cxx;
     var cyy = _this.cyy;
-    var sector = polarLayout.sector;
+    var sector = _this.sector;
     var dbs = constants.angularDragBoxSize;
 
     var angularDrag = dragBox.makeDragger(layers, 'path', 'angulardrag', 'move');
