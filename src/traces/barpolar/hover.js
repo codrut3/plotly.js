@@ -27,14 +27,18 @@ module.exports = function hoverPoints(pointData, xval, yval, hovermode) {
     var ya = subplot.yaxis;
     var inboxFn = subplot.vangles ? isPtInsidePolygon : Lib.isPtInsideSector;
 
-    // these are in 'g'eometric coordinates
-    var rVal = Math.sqrt(xval * xval + yval * yval);
+    if(radialAxis.range[0] > radialAxis.range[1]) {
+        xval = -xval;
+        yval = -yval;
+    }
+
+    var rVal = Math.abs(radialAxis.g2p(Math.sqrt(xval * xval + yval * yval)));
     var thetaVal = Math.atan2(yval, xval);
 
     // TODO add padding around sector to show labels,
     // when hovering "close to" them
     var distFn = function(di) {
-        var rBnds = [di.s0, di.s1];
+        var rBnds = [di.s0, di.s1].map(radialAxis.c2p);
         var thetaBnds = [di.p0, di.p1].map(angularAxis.c2g).map(Lib.rad2deg);
         return inboxFn(rVal, thetaVal, rBnds, thetaBnds, subplot.vangles) ?
             1 :
