@@ -66,28 +66,34 @@ module.exports = function plot(gd, subplot, cdbar) {
             var thetag0 = angularAxis.c2g(p0);
             var thetag1 = angularAxis.c2g(p1);
 
+            var dPath;
+
             if(!isNumeric(rp0) || !isNumeric(rp1) ||
                 !isNumeric(thetag0) || !isNumeric(thetag1) ||
                 rp0 === rp1 || thetag0 === thetag1
             ) {
-                bar.remove();
-                return;
+                // do not remove blank bars, to keep data-to-node
+                // mapping intact during radial drag, that we
+                // can skip calling _module.style during interactions
+                dPath = 'M0,0Z';
+            } else {
+                // TODO is this what we want for barpolar?
+                var rg1 = radialAxis.c2g(s1);
+                var thetagMid = (thetag0 + thetag1) / 2;
+                di.ct = [
+                    xa.c2p(rg1 * Math.cos(thetagMid)),
+                    ya.c2p(rg1 * Math.sin(thetagMid))
+                ];
+
+                // TODO round up bar borders?
+                // if so, factor out that logic from Bar.plot
+
+                dPath = pathFn(rp0, rp1, thetag0, thetag1);
             }
-
-            // TODO is this what we want for barpolar?
-            var rg1 = radialAxis.c2g(s1);
-            var thetagMid = (thetag0 + thetag1) / 2;
-            di.ct = [
-                xa.c2p(rg1 * Math.cos(thetagMid)),
-                ya.c2p(rg1 * Math.sin(thetagMid))
-            ];
-
-            // TODO round up bar borders?
-            // if so, factor out that logic from Bar.plot
 
             Lib.ensureSingle(bar, 'path')
                 .style('vector-effect', 'non-scaling-stroke')
-                .attr('d', pathFn(rp0, rp1, thetag0, thetag1));
+                .attr('d', dPath);
         });
 
         // clip plotGroup, when trace layer isn't clipped
