@@ -333,10 +333,10 @@ proto.mockCartesianAxis = function(fullLayout, polarLayout, opts) {
 
     ax.setRange = function() {
         var sectorBBox = _this.sectorBBox;
-        var radialRange = _this.radialAxis.range;
-        var rSpan = radialRange[1] - radialRange[0];
+        var rl = _this.radialAxis._rl;
+        var drl = rl[1] - rl[0];
         var ind = bboxIndices[axId];
-        ax.range = [sectorBBox[ind[0]] * rSpan, sectorBBox[ind[1]] * rSpan];
+        ax.range = [sectorBBox[ind[0]] * drl, sectorBBox[ind[1]] * drl];
     };
 
     ax.isPtWithinRange = axId === 'x' ?
@@ -359,6 +359,11 @@ proto.doAutoRange = function(fullLayout, polarLayout) {
     var rng = radialAxis.range;
     radialLayout.range = rng.slice();
     radialLayout._input.range = rng.slice();
+
+    radialAxis._rl = [
+        radialAxis.r2l(rng[0], null, 'gregorian'),
+        radialAxis.r2l(rng[1], null, 'gregorian')
+    ];
 };
 
 proto.updateRadialAxis = function(fullLayout, polarLayout) {
@@ -829,12 +834,12 @@ proto.updateMainDrag = function(fullLayout, polarLayout) {
         dragBox.showDoubleClickNotifier(gd);
 
         var radialAxis = _this.radialAxis;
-        var radialRange = radialAxis.range;
-        var drange = radialRange[1] - radialRange[0];
+        var rl = radialAxis._rl;
+        var drl = rl[1] - rl[0];
         var updateObj = {};
         updateObj[_this.id + '.radialaxis.range'] = [
-            radialRange[0] + r0 * drange / radius,
-            radialRange[0] + r1 * drange / radius
+            rl[0] + r0 * drl / radius,
+            rl[0] + r1 * drl / radius
         ];
 
         Registry.call('relayout', gd, updateObj);
@@ -913,8 +918,9 @@ proto.updateRadialDrag = function(fullLayout, polarLayout) {
     var radialAxis = _this.radialAxis;
     var radialLayout = polarLayout.radialaxis;
     var angle0 = deg2rad(_this.radialAxisAngle);
-    var range0 = radialAxis.range.slice();
-    var drange = range0[1] - range0[0];
+    var rl0 = radialAxis._rl[0];
+    var rl1 = radialAxis._rl[1];
+    var drl = rl1 - rl0;
     var bl = constants.radialDragBoxSize;
     var bl2 = bl / 2;
 
@@ -979,13 +985,14 @@ proto.updateRadialDrag = function(fullLayout, polarLayout) {
     function rerangeMove(dx, dy) {
         // project (dx, dy) unto unit radial axis vector
         var dr = Lib.dot([dx, -dy], [Math.cos(angle0), Math.sin(angle0)]);
-        var rprime = range0[1] - drange * dr / radius * 0.75;
+        rng1 = rl1 - drl * dr / radius * 0.75;
 
         // make sure new range[1] does not change the range[0] -> range[1] sign
-        if((drange > 0) !== (rprime > range0[0])) return;
+        if((drl > 0) !== (rng1 > rl0)) return;
 
         // update radial range -> update c2g -> update _m,_b
-        rng1 = radialAxis.range[1] = rprime;
+        radialAxis.range[1] = rng1;
+        radialAxis._rl[1] = rng1;
         radialAxis.setGeometry();
         radialAxis.setScale();
 
@@ -1181,12 +1188,12 @@ proto.isPtInside = function(d) {
     var vangles = this.vangles;
     var thetag = this.angularAxis.c2g(d.theta);
     var radialAxis = this.radialAxis;
-    var r = radialAxis.c2r(d.r);
-    var rRng = radialAxis.range;
+    var r = radialAxis.c2l(d.r);
+    var rl = radialAxis._rl;
 
     return vangles ?
-        helpers.isPtInsidePolygon(r, thetag, rRng, sector, vangles) :
-        Lib.isPtInsideSector(r, thetag, rRng, sector);
+        helpers.isPtInsidePolygon(r, thetag, rl, sector, vangles) :
+        Lib.isPtInsideSector(r, thetag, rl, sector);
 };
 
 proto.pathArc = function(r) {
