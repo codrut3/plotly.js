@@ -26,7 +26,7 @@ module.exports = {
     bargap: {
         valType: 'number',
         // TODO is this correct?
-        // I think 0.2 is a little much, maybe 0.1 would work better?
+        // I think 0.2 (like for bars) is a little much, maybe 0.1 would work better?
         dflt: 0.2,
         min: 0,
         max: 1,

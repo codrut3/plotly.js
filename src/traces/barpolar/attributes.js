@@ -8,7 +8,6 @@
 
 'use strict';
 
-var extendFlat = require('../../lib/extend').extendFlat;
 var scatterPolarAttrs = require('../scatterpolar/attributes');
 var barAttrs = require('../bar/attributes');
 

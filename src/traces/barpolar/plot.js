@@ -10,17 +10,12 @@
 
 var d3 = require('d3');
 var isNumeric = require('fast-isnumeric');
-var tinycolor = require('tinycolor2');
 
 var Lib = require('../../lib');
-var svgTextUtils = require('../../lib/svg_text_utils');
-
-var Color = require('../../components/color');
 var Drawing = require('../../components/drawing');
 var helpers = require('../../plots/polar/helpers');
 
 module.exports = function plot(gd, subplot, cdbar) {
-    var fullLayout = gd._fullLayout;
     var xa = subplot.xaxis;
     var ya = subplot.yaxis;
     var radialAxis = subplot.radialAxis;
@@ -32,7 +27,6 @@ module.exports = function plot(gd, subplot, cdbar) {
         var cd0 = cd[0];
         var plotGroup = cd0.node3 = d3.select(this);
         var t = cd0.t;
-        var trace = cd0.trace;
 
         var poffset = t.poffset;
         var poffsetIsArray = Array.isArray(poffset);
@@ -77,7 +71,7 @@ module.exports = function plot(gd, subplot, cdbar) {
                 // can skip calling _module.style during interactions
                 dPath = 'M0,0Z';
             } else {
-                // TODO is this what we want for barpolar?
+                // TODO is this where we want for to select for barpolar?
                 var rg1 = radialAxis.c2g(s1);
                 var thetagMid = (thetag0 + thetag1) / 2;
                 di.ct = [
@@ -121,7 +115,7 @@ function makePathFn(subplot) {
             var va0 = helpers.findEnclosingVertexAngles(a0, subplot.vangles)[0];
             var va1 = helpers.findEnclosingVertexAngles(a1, subplot.vangles)[1];
             var vaBar = [va0, tip, va1];
-            var clip = [a0, a1].map(Lib.rad2deg)
+            var clip = [a0, a1].map(Lib.rad2deg);
 
             return helpers.pathPolygonAnnulus(r0, r1, clip, vaBar, cxx, cyy);
         };
